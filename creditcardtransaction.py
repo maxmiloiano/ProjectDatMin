@@ -2,16 +2,12 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.mixture import GaussianMixture
 from sklearn.decomposition import PCA
 from sklearn.metrics import silhouette_score
-
-# Pastikan matplotlib menggunakan backend yang sesuai
-matplotlib.use("Agg")  # Non-interactive backend untuk Streamlit
 
 # --- Streamlit Configuration --- #
 st.set_page_config(
