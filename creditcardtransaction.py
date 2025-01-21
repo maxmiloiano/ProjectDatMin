@@ -35,7 +35,7 @@ def main():
         st.write("Dataset berhasil diunggah. Berikut adalah beberapa baris dari dataset:")
         
         data = pd.read_csv(uploaded_file, delimiter=';')
-        st.dataframe(data.head(10))
+        st.dataframe(data.head(500))
         
         # Membatasi data menjadi 500 baris
         data = data.head(500)
