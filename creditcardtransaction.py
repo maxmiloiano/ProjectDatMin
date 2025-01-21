@@ -80,25 +80,31 @@ def main():
         # --- Analisis Merchant --- #
         st.subheader("3. Analisis Transaksi Merchant")
         
-        if 'Merchant Name' in data.columns and 'Transaction Amount' in data.columns:
+        if 'Merchant Name' in data_cleaned.columns and 'Transaction Amount' in data_cleaned.columns:
             merchant_name = st.text_input("Masukkan Merchant Name:")
             
             if merchant_name:
-                merchant_data = data[data['Merchant Name'] == merchant_name]
-                total_transactions = len(merchant_data)
-                total_amount = merchant_data['Transaction Amount'].sum()
+                # Filter data berdasarkan Merchant Name
+                merchant_data = data_cleaned[data_cleaned['Merchant Name'] == merchant_name]
                 
-                # Menentukan transaksi mencurigakan (contoh: cluster dengan transaksi tinggi)
-                suspicious_transactions = merchant_data[merchant_data['Cluster'] == 2]  # Cluster mencurigakan
-                
-                st.write(f"Analisis untuk Merchant Name: {merchant_name}")
-                st.write(f"Jumlah total transaksi: {total_transactions}")
-                st.write(f"Total Transaction Amount: {total_amount}")
-                st.write(f"Jumlah transaksi mencurigakan: {len(suspicious_transactions)}")
-                
-                if not suspicious_transactions.empty:
-                    st.write("Detail transaksi mencurigakan:")
-                    st.dataframe(suspicious_transactions[['Transaction Amount', 'Cluster']])
+                # Pastikan data merchant tidak kosong
+                if not merchant_data.empty:
+                    total_transactions = len(merchant_data)
+                    total_amount = merchant_data['Transaction Amount'].sum()
+                    
+                    # Menentukan transaksi mencurigakan (contoh: cluster dengan transaksi tinggi)
+                    suspicious_transactions = merchant_data[merchant_data['Cluster'] == 2]  # Cluster mencurigakan
+                    
+                    st.write(f"Analisis untuk Merchant Name: {merchant_name}")
+                    st.write(f"Jumlah total transaksi: {total_transactions}")
+                    st.write(f"Total Transaction Amount: {total_amount}")
+                    st.write(f"Jumlah transaksi mencurigakan: {len(suspicious_transactions)}")
+                    
+                    if not suspicious_transactions.empty:
+                        st.write("Detail transaksi mencurigakan:")
+                        st.dataframe(suspicious_transactions[['Transaction Amount', 'Cluster']])
+                else:
+                    st.warning(f"Tidak ditemukan data untuk Merchant Name: {merchant_name}")
         
         # --- Visualisasi --- #
         st.subheader("4. Visualisasi Hasil Clustering")
