@@ -81,7 +81,10 @@ def main():
         st.subheader("3. Analisis Transaksi Merchant")
         
         if 'Merchant Name' in data_cleaned.columns and 'Transaction Amount' in data_cleaned.columns:
-            merchant_name = st.text_input("Masukkan Merchant Name:")
+            merchant_name = st.text_input("Masukkan Merchant Name:").strip().lower()
+            
+            # Normalize dataset Merchant Name for comparison
+            data_cleaned['Merchant Name'] = data_cleaned['Merchant Name'].str.lower().str.strip()
             
             if merchant_name:
                 # Filter data berdasarkan Merchant Name
@@ -105,6 +108,8 @@ def main():
                         st.dataframe(suspicious_transactions[['Transaction Amount', 'Cluster']])
                 else:
                     st.warning(f"Tidak ditemukan data untuk Merchant Name: {merchant_name}")
+                    st.write("Contoh data Merchant Name yang tersedia:")
+                    st.dataframe(data_cleaned[['Merchant Name']].drop_duplicates().head(10))
         
         # --- Visualisasi --- #
         st.subheader("4. Visualisasi Hasil Clustering")
