@@ -35,7 +35,7 @@ def main():
         st.write("Dataset berhasil diunggah. Berikut adalah beberapa baris dari dataset:")
         
         data = pd.read_csv(uploaded_file, delimiter=';')
-        st.dataframe(data.head(500))
+        st.dataframe(data.head(10))
         
         # Membatasi data menjadi 500 baris
         data = data.head(500)
@@ -43,7 +43,7 @@ def main():
         # --- Data Cleaning --- #
         st.subheader("1. Data Cleaning")
         
-        irrelevant_cols = ['Customer ID', 'Name', 'Surname', 'Birthdate']
+        irrelevant_cols = ['Customer ID', 'Name', 'Surname', 'Birthdate', 'Merchant Name']
         data_cleaned = data.drop(columns=[col for col in irrelevant_cols if col in data.columns], errors="ignore")
         
         if 'Date' in data_cleaned.columns:
@@ -77,48 +77,24 @@ def main():
         st.write(f"Hasil clustering dengan {n_clusters} cluster:")
         st.dataframe(data_cleaned.head(10))
         
-        # --- Analisis Merchant --- #
-        st.subheader("3. Analisis Transaksi Merchant")
-        
-        if 'Merchant Name' in data_cleaned.columns and 'Transaction Amount' in data_cleaned.columns:
-            merchant_name = st.text_input("Masukkan Merchant Name:").strip().lower()
-            
-            # Normalize dataset Merchant Name for comparison
-            data_cleaned['Merchant Name'] = data_cleaned['Merchant Name'].str.lower().str.strip()
-            
-            if merchant_name:
-                # Filter data berdasarkan Merchant Name
-                merchant_data = data_cleaned[data_cleaned['Merchant Name'] == merchant_name]
-                
-                # Pastikan data merchant tidak kosong
-                if not merchant_data.empty:
-                    total_transactions = len(merchant_data)
-                    total_amount = merchant_data['Transaction Amount'].sum()
-                    
-                    # Menentukan transaksi mencurigakan (contoh: cluster dengan transaksi tinggi)
-                    suspicious_transactions = merchant_data[merchant_data['Cluster'] == 2]  # Cluster mencurigakan
-                    
-                    st.write(f"Analisis untuk Merchant Name: {merchant_name}")
-                    st.write(f"Jumlah total transaksi: {total_transactions}")
-                    st.write(f"Total Transaction Amount: {total_amount}")
-                    st.write(f"Jumlah transaksi mencurigakan: {len(suspicious_transactions)}")
-                    
-                    if not suspicious_transactions.empty:
-                        st.write("Detail transaksi mencurigakan:")
-                        st.dataframe(suspicious_transactions[['Transaction Amount', 'Cluster']])
-                else:
-                    st.warning(f"Tidak ditemukan data untuk Merchant Name: {merchant_name}")
-                    st.write("Contoh data Merchant Name yang tersedia:")
-                    st.dataframe(data_cleaned[['Merchant Name']].drop_duplicates().head(10))
-        
         # --- Visualisasi --- #
-        st.subheader("4. Visualisasi Hasil Clustering")
+        st.subheader("3. Visualisasi Hasil Clustering")
         
         # Heatmap korelasi
         st.write("**Heatmap Korelasi:**")
         corr_matrix = data_cleaned.corr()
         fig, ax = plt.subplots(figsize=(12, 10))
         sns.heatmap(corr_matrix, annot=True, fmt=".2f", cmap="coolwarm", ax=ax)
+        st.pyplot(fig)
+        
+        # Distribusi cluster
+        st.write("**Distribusi Cluster:**")
+        cluster_counts = data_cleaned['Cluster'].value_counts()
+        fig, ax = plt.subplots()
+        sns.barplot(x=cluster_counts.index, y=cluster_counts.values, palette='Set2', ax=ax)
+        ax.set_title("Jumlah Data Per Cluster")
+        ax.set_xlabel("Cluster")
+        ax.set_ylabel("Jumlah Data")
         st.pyplot(fig)
         
         # PCA untuk visualisasi 2D
@@ -142,6 +118,28 @@ def main():
         ax.set_xlabel("PCA Component 1")
         ax.set_ylabel("PCA Component 2")
         st.pyplot(fig)
+        
+        # --- Evaluasi Silhouette Score --- #
+        st.subheader("4. Evaluasi Clustering")
+        if len(set(clusters)) > 1:
+            silhouette_avg = silhouette_score(data_scaled, clusters)
+            st.write(f"Silhouette Score: {silhouette_avg:.2f}")
+            if silhouette_avg > 0.5:
+                st.success("Silhouette Score menunjukkan cluster yang cukup baik.")
+            elif 0.2 < silhouette_avg <= 0.5:
+                st.warning("Silhouette Score menunjukkan cluster saling overlap.")
+            else:
+                st.error("Silhouette Score menunjukkan clustering yang kurang baik.")
+        
+        # --- Simpan Hasil --- #
+        st.subheader("5. Unduh Hasil Clustering")
+        csv = data_cleaned.to_csv(index=False)
+        st.download_button(
+            label="Download Hasil Clustering sebagai CSV",
+            data=csv,
+            file_name="gmm_clustering_results.csv",
+            mime="text/csv"
+        )
 
 # --- Menjalankan Aplikasi --- #
 if __name__ == "__main__":
